@@ -38,9 +38,9 @@ defmodule PetsClient do
   plug Tesla.Middleware.Alchemetrics
   plug Tesla.Middleware.BaseUrl, "http://pets.api.com"
 
-	def dogs do
-	  get("/v1/dogs/")
-	end
+  def dogs do
+    get("/v1/dogs/")
+  end
 end
 ```
 
@@ -52,40 +52,40 @@ PetsClient.dogs()
 ### What is reported
 # Response time (avg, max, min, p99 and p95)
 %{
-	metric: (:avg|:max|:min|:p99|p95),
-	name: "external_call.PetsClient.get.v1.dogs.response_time",
-	value: 592016,
-	options:
-	[
-		application: "MyApp",
-		metadata: [
-			type: "external_call.response_time",
-			request_details: %{
-				route: "get.v1.dogs",
-				service: "PetsClient"
-			}
-		]
-	]
+  metric: (:avg|:max|:min|:p99|p95),
+  name: "external_call.PetsClient.get.v1.dogs.response_time",
+  value: 592016,
+  options:
+  [
+    application: "MyApp",
+    metadata: [
+      type: "external_call.response_time",
+      request_details: %{
+        route: "get.v1.dogs",
+        service: "PetsClient"
+      }
+    ]
+  ]
 }
 
 # Calls count (last interval and total)
 %{
-	metric: (:last_interval|:total),
-	name: "external_call.PetsClient.get.v1.dogs.200.count",
-	value: 1,
-	options: [
-		application: "MyApp",
-		metadata: [
-			type: "external_call.count",
-			request_details: %{
-				route: "get.v1.dogs",
-				service: "PetsClient"
-			},
-			response_details: %{
-				status_code: 200,
-				status_code_group: "2xx"
-			}
-		]
-	]
+  metric: (:last_interval|:total),
+  name: "external_call.PetsClient.get.v1.dogs.200.count",
+  value: 1,
+  options: [
+    application: "MyApp",
+    metadata: [
+      type: "external_call.count",
+      request_details: %{
+        route: "get.v1.dogs",
+        service: "PetsClient"
+      },
+      response_details: %{
+        status_code: 200,
+        status_code_group: "2xx"
+      }
+    ]
+  ]
 }
 ```
