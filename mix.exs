@@ -18,6 +18,9 @@ defmodule AlchemetricsTesla.Mixfile do
     [extra_applications: [:logger]]
   end
 
+  def elixirc_paths(:test), do: ["lib", "test/support"]
+  def elixirc_paths(_), do: ["lib"]
+
   # Dependencies can be Hex packages:
   #
   #   {:my_dep, "~> 0.3.0"}
@@ -28,6 +31,10 @@ defmodule AlchemetricsTesla.Mixfile do
   #
   # Type "mix help deps" for more examples and options
   defp deps do
-    []
+    [
+      {:alchemetrics, "~> 0.3.0", only: :test},
+      {:tesla, "~> 0.7.1", only: :test},
+      {:mock, "~> 0.3.1", only: :test},
+    ]
   end
 end

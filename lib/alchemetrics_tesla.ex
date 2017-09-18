@@ -1,18 +1,25 @@
 defmodule AlchemetricsTesla do
-  @moduledoc """
-  Documentation for AlchemetricsTesla.
-  """
+  alias AlchemetricsTesla.ExternalServiceMeasurer
 
-  @doc """
-  Hello world.
+  def call(%Tesla.Env{url: url, method: method, __module__: module} = env, next, _options) do
+    route_name = route_name_for(url)
+    service_name = service_name_for(module)
+    ExternalServiceMeasurer.report_service_route(service_name, "#{method}.#{route_name}", fn ->
+      Tesla.run(env, next)
+    end)
+  end
 
-  ## Examples
+  defp route_name_for(url) do
+    Regex.scan(~r{^[^?]+}, url)
+    |> hd
+    |> hd
+    |> String.split("/")
+    |> Enum.reject(&(&1 == ""))
+    |> Enum.join(".")
+  end
 
-      iex> AlchemetricsTesla.hello
-      :world
-
-  """
-  def hello do
-    :world
+  defp service_name_for(module) do
+    [[_, service_name]] = Regex.scan(~r{^Elixir\.(.+)$}, to_string(module))
+    service_name
   end
 end
