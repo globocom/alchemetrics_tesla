@@ -1,6 +1,6 @@
 defmodule Support.TeslaClient do
   use Tesla
-  plug AlchemetricsTesla
+  plug Tesla.Middleware.Alchemetrics
   plug Tesla.Middleware.BaseUrl
 
   adapter(fn env ->
@@ -11,7 +11,7 @@ defmodule Support.TeslaClient do
   end)
 end
 
-defmodule AlchemetricsTeslaTest do
+defmodule Tesla.Middleware.AlchemetricsTest do
   use ExUnit.Case
   import Mock
   alias AlchemetricsTesla.ExternalServiceMeasurer

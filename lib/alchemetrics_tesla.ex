@@ -1,25 +1,80 @@
 defmodule AlchemetricsTesla do
-  alias AlchemetricsTesla.ExternalServiceMeasurer
+  import Alchemetrics
 
-  def call(%Tesla.Env{url: url, method: method, __module__: module} = env, next, _options) do
-    route_name = route_name_for(url)
-    service_name = service_name_for(module)
-    ExternalServiceMeasurer.report_service_route(service_name, "#{method}.#{route_name}", fn ->
-      Tesla.run(env, next)
+  @report_namespace "external_call"
+
+  defmacro __using__(service_name: service_name) do
+    quote do
+      import Severino.Metrics.Measurers.ExternalService
+      @service_name unquote(service_name)
+    end
+  end
+
+  def report_service_route(service_name, route_name, function) do
+    measure_response_time(service_name, route_name, fn ->
+      try do
+        function.()
+      rescue e in Tesla.Error ->
+        e
+      end
     end)
+    |> count_response(service_name, route_name)
+    |> respond
   end
 
-  defp route_name_for(url) do
-    Regex.scan(~r{^[^?]+}, url)
-    |> hd
-    |> hd
-    |> String.split("/")
-    |> Enum.reject(&(&1 == ""))
-    |> Enum.join(".")
+  defp measure_response_time(service_name, route_name, func) do
+    report_time("#{@report_namespace}.#{service_name}.#{route_name}.response_time", %{
+        metrics: [:p99, :p95, :avg, :min, :max],
+        metadata: %{
+          type: "#{@report_namespace}.response_time",
+          request_details: %{
+            service: service_name,
+            route: route_name,
+          }
+        }
+    }) do
+      func.()
+    end
   end
 
-  defp service_name_for(module) do
-    [[_, service_name]] = Regex.scan(~r{^Elixir\.(.+)$}, to_string(module))
-    service_name
+  defp count_response(%Tesla.Error{} = error, service_name, route_name) do
+    Alchemetrics.count("#{@report_namespace}.#{service_name}.#{route_name}.exception.count", %{
+      metadata: %{
+        type: "#{@report_namespace}.count",
+        request_details:  %{
+          service: service_name,
+          route: route_name,
+        }
+      }
+    })
+    error
+  end
+
+  defp count_response(%Tesla.Env{status: status_code} = response, service_name, route_name) do
+    first_digit = div(status_code, 100)
+    status_code_group = "#{first_digit}xx"
+    Alchemetrics.count("#{@report_namespace}.#{service_name}.#{route_name}.#{status_code}.count", %{
+      metadata: %{
+        type: "#{@report_namespace}.count",
+        request_details:  %{
+          service: service_name,
+          route: route_name,
+        },
+        response_details: %{
+          status_code_group: status_code_group,
+          status_code: status_code,
+        }
+      }
+    })
+    response
+  end
+
+  defp respond(%Tesla.Error{} = error), do: raise error
+  defp respond(%Tesla.Env{} = response), do: response
+
+  defmacro report_route(route_name, do: function) do
+    quote do
+      report_service_route(@service_name, unquote(route_name), fn -> unquote(function) end)
+    end
   end
 end
