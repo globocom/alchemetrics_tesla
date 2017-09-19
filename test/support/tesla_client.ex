@@ -1,6 +1,11 @@
 defmodule Support.TeslaClient do
   use Tesla
-  plug Tesla.Middleware.Alchemetrics
+  plug Tesla.Middleware.Alchemetrics, %{
+    custom_route_names: [
+      {~r{user/pets/\d+/specie}, "user.pets.specie"},
+      {~r{user/pets/\d+}, "user.pet"},
+    ]
+  }
 
   adapter(fn env ->
     cond do
