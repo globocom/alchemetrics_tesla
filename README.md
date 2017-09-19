@@ -1,7 +1,7 @@
 <h1 align="center">Alchemetrics Tesla</h1>
 
 <p align="center">
-  <img alt="Alchemetrics Tesla" src="https://github.com/globocom/alchemetrics/blob/master/assets/alchemetrics.png?raw=true" width="128">
+  <img alt="Alchemetrics Tesla" src="https://github.com/globocom/alchemetrics_tesla/blob/master/assets/alchemetrics_tesla.png?raw=true" width="128">
 </p>
 
 <p align="center">
