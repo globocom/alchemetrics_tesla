@@ -1,7 +1,6 @@
 defmodule Support.TeslaClient do
   use Tesla
   plug Tesla.Middleware.Alchemetrics
-  plug Tesla.Middleware.BaseUrl
 
   adapter(fn env ->
     cond do
