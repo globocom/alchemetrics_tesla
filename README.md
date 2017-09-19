@@ -89,3 +89,69 @@ PetsClient.dogs()
   ]
 }
 ```
+
+### Adding custom route names
+You can also add custom route names to specified patterns:
+
+```elixir
+defmodule PetsClient do
+  use Tesla
+  plug Tesla.Middleware.Alchemetrics, %{
+		custom_route_names: [
+			{~r{user/pets/\d+}, "user.pet"}
+		]
+	}
+  plug Tesla.Middleware.BaseUrl, "http://pets.api.com"
+
+  def logged_user_pet(pet_id) do
+    get("/user/pets/#{pet_id}")
+  end
+end
+```
+
+
+And when you make any request to a route that match one of the patterns, it will be automatically reported:
+```elixir
+### Sample call
+PetsClient.logged_user_pet(100)
+
+### What is reported
+# Response time (avg, max, min, p99 and p95)
+%{
+  metric: (:avg|:max|:min|:p99|p95),
+  name: "external_call.PetsClient.get.user.pet.response_time",
+  value: 592016,
+  options:
+  [
+    application: "MyApp",
+    metadata: [
+      type: "external_call.response_time",
+      request_details: %{
+        route: "get.user.pet",
+        service: "PetsClient"
+      }
+    ]
+  ]
+}
+
+# Calls count (last interval and total)
+%{
+  metric: (:last_interval|:total),
+  name: "external_call.PetsClient.get.user.pet.200.count",
+  value: 1,
+  options: [
+    application: "MyApp",
+    metadata: [
+      type: "external_call.count",
+      request_details: %{
+        route: "get.user.pet",
+        service: "PetsClient"
+      },
+      response_details: %{
+        status_code: 200,
+        status_code_group: "2xx"
+      }
+    ]
+  ]
+}
+```

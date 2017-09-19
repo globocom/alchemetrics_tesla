@@ -53,4 +53,38 @@ defmodule Tesla.Middleware.AlchemetricsTest do
       }
     })
   end
+
+  test "can specify custom route names for specific patterns" do
+    TeslaClient.delete("/user/pets/10")
+    assert called Alchemetrics.count("external_call.Support.TeslaClient.delete.user.pet.200.count", %{
+      metadata: %{
+        type: "external_call.count",
+        request_details: %{
+          service: "Support.TeslaClient",
+          route: "delete.user.pet",
+        },
+        response_details: %{
+          status_code_group: "2xx",
+          status_code: 200,
+        }
+      }
+    })
+  end
+
+  test "custom route names patterns have precedence if declared first" do
+    TeslaClient.get("/user/pets/10/specie?specie=dog")
+    assert called Alchemetrics.count("external_call.Support.TeslaClient.get.user.pets.specie.200.count", %{
+      metadata: %{
+        type: "external_call.count",
+        request_details: %{
+          service: "Support.TeslaClient",
+          route: "get.user.pets.specie",
+        },
+        response_details: %{
+          status_code_group: "2xx",
+          status_code: 200,
+        }
+      }
+    })
+  end
 end
