@@ -1,7 +1,6 @@
 defmodule Tesla.Middleware.Alchemetrics do
-
-  def call(%Tesla.Env{url: url, method: method, __module__: module} = env, next, %{custom_route_names: routes_mapping} \\ %{}) do
-    custom_route_name = routes_mapping
+  def call(%Tesla.Env{url: url, method: method, __module__: module} = env, next, options) do
+    custom_route_name = (options[:custom_route_names] || %{})
     |> Enum.find_value(fn {pattern, name} -> String.match?(url, pattern) &&  name end)
     route_name = custom_route_name || AlchemetricsTesla.RouteNameBuilder.build(url)
     service_name = service_name_for(module)
