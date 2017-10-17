@@ -4,7 +4,7 @@ defmodule Tesla.Middleware.Alchemetrics do
     |> Enum.find_value(fn {pattern, name} -> String.match?(url, pattern) &&  name end)
     route_name = custom_route_name || AlchemetricsTesla.RouteNameBuilder.build(url)
     service_name = service_name_for(module)
-    AlchemetricsTesla.report_service_route(service_name, "#{method}.#{route_name}", fn ->
+    AlchemetricsTesla.report_service_route(method, URI.parse(url), service_name, "#{method}.#{route_name}", fn ->
       Tesla.run(env, next)
     end)
   end
