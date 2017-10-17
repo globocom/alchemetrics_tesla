@@ -36,7 +36,7 @@ defmodule AlchemetricsTesla.Mixfile do
 
   defp deps do
     [
-      {:alchemetrics, "~> 0.3.0"},
+      {:alchemetrics, "~> 0.5"},
       {:tesla, "~> 0.7"},
       {:mock, "~> 0.3.1", only: :test},
       {:excoveralls, "~> 0.7", only: :test},
