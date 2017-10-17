@@ -10,49 +10,48 @@ defmodule AlchemetricsTesla do
     end
   end
 
-  def report_service_route(service_name, route_name, function) do
-    measure_response_time(service_name, route_name, fn ->
+  def report_service_route(method, %URI{host: domain, port: port, scheme: protocol}, service_name, route_name, function) do
+    request_details = %{
+      service: service_name,
+      route: route_name,
+      method: method,
+      protocol: protocol,
+      domain: domain,
+      port: port,
+    }
+    report_response_time(request_details, fn ->
       try do
         function.()
       rescue e in Tesla.Error ->
         e
       end
     end)
-    |> count_response(service_name, route_name)
+    |> count_response(request_details)
     |> respond
   end
 
-  defp measure_response_time(service_name, route_name, func) do
+  defp report_response_time(request_details, func) do
     [
       type: "#{@report_namespace}.response_time",
-      request_details: %{
-        service: service_name,
-        route: route_name,
-      }
+      request_details: request_details,
     ]
     |> report(func)
   end
 
-  defp count_response(%Tesla.Error{} = error, service_name, route_name) do
+  defp count_response(%Tesla.Error{} = error, request_details) do
     Alchemetrics.increment([
       type: "#{@report_namespace}.count",
-      request_details:  %{
-        service: service_name,
-        route: route_name,
-      }
+      request_details: request_details
     ])
     error
   end
 
-  defp count_response(%Tesla.Env{status: status_code} = response, service_name, route_name) do
+  defp count_response(%Tesla.Env{status: status_code} = response, request_details) do
     first_digit = div(status_code, 100)
     status_code_group = "#{first_digit}xx"
     Alchemetrics.increment([
       type: "#{@report_namespace}.count",
-      request_details:  %{
-        service: service_name,
-        route: route_name,
-      },
+      request_details: request_details,
       response_details: %{
         status_code_group: status_code_group,
         status_code: status_code,
@@ -63,10 +62,4 @@ defmodule AlchemetricsTesla do
 
   defp respond(%Tesla.Error{} = error), do: raise error
   defp respond(%Tesla.Env{} = response), do: response
-
-  defmacro report_route(route_name, do: function) do
-    quote do
-      report_service_route(@service_name, unquote(route_name), fn -> unquote(function) end)
-    end
-  end
 end

@@ -14,23 +14,31 @@ defmodule Tesla.Middleware.AlchemetricsTest do
   end
 
   test "report response time" do
-    TeslaClient.get("/user/pets?specie=dog")
+    TeslaClient.get("https://mypets.com/user/pets?specie=dog")
     assert called Alchemetrics.report([
       type: "external_call.response_time",
       request_details: %{
         service: "Support.TeslaClient",
         route: "get.user.pets",
+        method: :get,
+        protocol: "https",
+        domain: "mypets.com",
+        port: 443,
       }
     ], :_)
   end
 
   test "report response counting" do
-    TeslaClient.get("/user/pets?specie=dog")
+    TeslaClient.get("http://mypets.com/user/pets?specie=dog")
     assert called Alchemetrics.increment([
       type: "external_call.count",
       request_details: %{
         service: "Support.TeslaClient",
         route: "get.user.pets",
+        method: :get,
+        protocol: "http",
+        domain: "mypets.com",
+        port: 80,
       },
       response_details: %{
         status_code_group: "2xx",
@@ -41,24 +49,32 @@ defmodule Tesla.Middleware.AlchemetricsTest do
 
   test "report exception counting" do
     assert_raise Tesla.Error, fn ->
-      TeslaClient.get("/user/error?specie=dog")
+      TeslaClient.get("http://mypets.com/user/error?specie=dog")
     end
     assert called Alchemetrics.increment([
       type: "external_call.count",
       request_details: %{
         service: "Support.TeslaClient",
         route: "get.user.error",
+        method: :get,
+        protocol: "http",
+        domain: "mypets.com",
+        port: 80,
       }
     ])
   end
 
   test "can specify custom route names for specific patterns" do
-    TeslaClientWithCustomRoutes.delete("/user/pets/10")
+    TeslaClientWithCustomRoutes.delete("http://mypets.com/user/pets/10")
     assert called Alchemetrics.increment([
       type: "external_call.count",
       request_details: %{
         service: "Support.TeslaClientWithCustomRoutes",
         route: "delete.user.pet",
+        method: :delete,
+        protocol: "http",
+        domain: "mypets.com",
+        port: 80,
       },
       response_details: %{
         status_code_group: "2xx",
@@ -68,12 +84,16 @@ defmodule Tesla.Middleware.AlchemetricsTest do
   end
 
   test "custom route names patterns have precedence if declared first" do
-    TeslaClientWithCustomRoutes.get("/user/pets/10/specie?specie=dog")
+    TeslaClientWithCustomRoutes.get("http://mypets.com/user/pets/10/specie?specie=dog")
     assert called Alchemetrics.increment([
       type: "external_call.count",
       request_details: %{
         service: "Support.TeslaClientWithCustomRoutes",
         route: "get.user.pets.specie",
+        method: :get,
+        protocol: "http",
+        domain: "mypets.com",
+        port: 80,
       },
       response_details: %{
         status_code_group: "2xx",
