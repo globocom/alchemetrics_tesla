@@ -10,7 +10,7 @@ defmodule AlchemetricsTesla do
     end
   end
 
-  def report_service_route(method, %URI{host: domain, port: port, scheme: protocol}, service_name, route_name, function) do
+  def report_service_route(method, %URI{host: domain, port: port, scheme: protocol}, service_name, extra_metadata, function) do
     request_details = %{
       service: service_name,
       method: method,
@@ -18,7 +18,7 @@ defmodule AlchemetricsTesla do
       domain: domain,
       port: port,
     }
-    |> set_unless_nil(:route_name, route_name)
+    |> Map.merge(extra_metadata)
     report_response_time(request_details, fn ->
       try do
         function.()
@@ -62,9 +62,4 @@ defmodule AlchemetricsTesla do
 
   defp respond(%Tesla.Error{} = error), do: raise error
   defp respond(%Tesla.Env{} = response), do: response
-
-  defp set_unless_nil(map, key, nil), do: map
-  defp set_unless_nil(map, key, value) do
-    Map.put(map, key, value)
-  end
 end
