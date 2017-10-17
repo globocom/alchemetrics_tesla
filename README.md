@@ -51,107 +51,85 @@ PetsClient.dogs()
 
 ### What is reported
 # Response time (avg, max, min, p99 and p95)
-%{
-  metric: (:avg|:max|:min|:p99|p95),
-  name: "external_call.PetsClient.get.v1.dogs.response_time",
-  value: 592016,
-  options:
-  [
-    application: "MyApp",
-    metadata: [
-      type: "external_call.response_time",
-      request_details: %{
-        route: "get.v1.dogs",
-        service: "PetsClient"
-      }
-    ]
-  ]
-}
+[
+  type: "external_call.response_time",
+  request_details: %{
+    service: "PetsClient",
+    domain: "pets.api.com",
+    method: :get,
+    port: 80,
+    protocol: "http",
+  }
+]
 
 # Calls count (last interval and total)
-%{
-  metric: (:last_interval|:total),
-  name: "external_call.PetsClient.get.v1.dogs.200.count",
-  value: 1,
-  options: [
-    application: "MyApp",
-    metadata: [
-      type: "external_call.count",
-      request_details: %{
-        route: "get.v1.dogs",
-        service: "PetsClient"
-      },
-      response_details: %{
-        status_code: 200,
-        status_code_group: "2xx"
-      }
-    ]
-  ]
-}
+[
+  type: "external_call.count",
+  request_details: %{
+    service: "PetsClient",
+    domain: "pets.api.com",
+    method: :get,
+    port: 80,
+    protocol: "http",
+  },
+  response_details: %{
+    status_code: 200,
+    status_code_group: "2xx"
+  }
+]
 ```
 
-### Adding custom route names
-You can also add custom route names to specified patterns:
+### Adding extra metric metadata
+You can also add extra metadata:
 
 ```elixir
 defmodule PetsClient do
   use Tesla
-  plug Tesla.Middleware.Alchemetrics, %{
-		custom_route_names: [
-			{~r{user/pets/\d+}, "user.pet"}
-		]
-	}
+  plug Tesla.Middleware.Alchemetrics
   plug Tesla.Middleware.BaseUrl, "http://pets.api.com"
 
+  def dogs do
+    get("/v1/dogs/", opts: [alchemetrics_metadata: %{route: "get.dogs"}])
+  end
+
   def logged_user_pet(pet_id) do
-    get("/user/pets/#{pet_id}")
+    get("/user/pets/#{pet_id}", opts: [alchemetrics_metadata: %{route: "get.user.pets.show"}])
   end
 end
 ```
 
-
-And when you make any request to a route that match one of the patterns, it will be automatically reported:
+This extra metadata will be added to `request_details` key:
 ```elixir
-### Sample call
+## Sample call (1)
 PetsClient.logged_user_pet(100)
 
-### What is reported
-# Response time (avg, max, min, p99 and p95)
+# Reported response time (avg, max, min, p99 and p95)
 %{
-  metric: (:avg|:max|:min|:p99|p95),
-  name: "external_call.PetsClient.get.user.pet.response_time",
-  value: 592016,
-  options:
-  [
-    application: "MyApp",
-    metadata: [
-      type: "external_call.response_time",
-      request_details: %{
-        route: "get.user.pet",
-        service: "PetsClient"
-      }
-    ]
-  ]
+  type: "external_call.response_time",
+  request_details: %{
+    service: "PetsClient",
+    domain: "pets.api.com",
+    method: :get,
+    port: 80,
+    protocol: "http",
+  },
+  extra: %{ route: "get.user.pets" }
 }
 
-# Calls count (last interval and total)
+
+## Sample call (2)
+PetsClient.dogs()
+
+# Reported response time (avg, max, min, p99 and p95)
 %{
-  metric: (:last_interval|:total),
-  name: "external_call.PetsClient.get.user.pet.200.count",
-  value: 1,
-  options: [
-    application: "MyApp",
-    metadata: [
-      type: "external_call.count",
-      request_details: %{
-        route: "get.user.pet",
-        service: "PetsClient"
-      },
-      response_details: %{
-        status_code: 200,
-        status_code_group: "2xx"
-      }
-    ]
-  ]
+  type: "external_call.response_time",
+  request_details: %{
+    service: "PetsClient",
+    domain: "pets.api.com",
+    method: :get,
+    port: 80,
+    protocol: "http",
+  },
+  extra: %{ route: "get.dogs" }
 }
 ```
