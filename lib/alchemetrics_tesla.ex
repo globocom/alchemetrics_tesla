@@ -23,49 +23,41 @@ defmodule AlchemetricsTesla do
   end
 
   defp measure_response_time(service_name, route_name, func) do
-    report_time("#{@report_namespace}.#{service_name}.#{route_name}.response_time", %{
-        metrics: [:p99, :p95, :avg, :min, :max],
-        metadata: %{
-          type: "#{@report_namespace}.response_time",
-          request_details: %{
-            service: service_name,
-            route: route_name,
-          }
-        }
-    }) do
-      func.()
-    end
+    [
+      type: "#{@report_namespace}.response_time",
+      request_details: %{
+        service: service_name,
+        route: route_name,
+      }
+    ]
+    |> report(func)
   end
 
   defp count_response(%Tesla.Error{} = error, service_name, route_name) do
-    Alchemetrics.count("#{@report_namespace}.#{service_name}.#{route_name}.exception.count", %{
-      metadata: %{
-        type: "#{@report_namespace}.count",
-        request_details:  %{
-          service: service_name,
-          route: route_name,
-        }
+    Alchemetrics.increment([
+      type: "#{@report_namespace}.count",
+      request_details:  %{
+        service: service_name,
+        route: route_name,
       }
-    })
+    ])
     error
   end
 
   defp count_response(%Tesla.Env{status: status_code} = response, service_name, route_name) do
     first_digit = div(status_code, 100)
     status_code_group = "#{first_digit}xx"
-    Alchemetrics.count("#{@report_namespace}.#{service_name}.#{route_name}.#{status_code}.count", %{
-      metadata: %{
-        type: "#{@report_namespace}.count",
-        request_details:  %{
-          service: service_name,
-          route: route_name,
-        },
-        response_details: %{
-          status_code_group: status_code_group,
-          status_code: status_code,
-        }
+    Alchemetrics.increment([
+      type: "#{@report_namespace}.count",
+      request_details:  %{
+        service: service_name,
+        route: route_name,
+      },
+      response_details: %{
+        status_code_group: status_code_group,
+        status_code: status_code,
       }
-    })
+    ])
     response
   end
 
