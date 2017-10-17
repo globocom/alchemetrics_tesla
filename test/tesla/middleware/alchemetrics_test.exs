@@ -31,15 +31,15 @@ defmodule Tesla.Middleware.AlchemetricsTest do
   test "report response time with custom metric route name" do
     TeslaClient.get("https://mypets.com/user/pets?specie=dog", opts: [alchemetrics_metadata: %{route_name: "get-dogs"}])
     assert called Alchemetrics.report([
+      extra: %{ route_name: "get-dogs" },
       type: "external_call.response_time",
       request_details: %{
         service: "Support.TeslaClient",
-        route_name: "get-dogs",
         method: :get,
         protocol: "https",
         domain: "mypets.com",
         port: 443,
-      }
+      },
     ], :_)
   end
 
@@ -64,10 +64,10 @@ defmodule Tesla.Middleware.AlchemetricsTest do
   test "report response counting with custom metric route name" do
     TeslaClient.get("http://mypets.com/user/pets?specie=dog", opts: [alchemetrics_metadata: %{route_name: "get-dogs"}])
     assert called Alchemetrics.increment([
+      extra: %{ route_name: "get-dogs" },
       type: "external_call.count",
       request_details: %{
         service: "Support.TeslaClient",
-        route_name: "get-dogs",
         method: :get,
         protocol: "http",
         domain: "mypets.com",
@@ -76,7 +76,7 @@ defmodule Tesla.Middleware.AlchemetricsTest do
       response_details: %{
         status_code_group: "2xx",
         status_code: 200,
-      }
+      },
     ])
   end
 
@@ -101,15 +101,15 @@ defmodule Tesla.Middleware.AlchemetricsTest do
       TeslaClient.delete("http://mypets.com/user/error?specie=dog", opts: [alchemetrics_metadata: %{route_name: "delete-pet"}])
     end
     assert called Alchemetrics.increment([
+      extra: %{ route_name: "delete-pet" },
       type: "external_call.count",
       request_details: %{
         service: "Support.TeslaClient",
-        route_name: "delete-pet",
         method: :delete,
         protocol: "http",
         domain: "mypets.com",
         port: 80,
-      }
+      },
     ])
   end
 
