@@ -3,7 +3,8 @@ defmodule Tesla.Middleware.AlchemetricsTest do
   import Mock
   alias AlchemetricsTesla.ExternalServiceMeasurer
   alias Support.TeslaClient
-  alias Support.TeslaClientWithCustomRoutes
+  alias Support.TeslaClientWithBaseUrl
+  alias Support.TeslaClientWithBaseUrlAfter
 
   setup_with_mocks([{Alchemetrics, [], [report: fn
     _,function when is_function(function) -> function.()
@@ -110,5 +111,33 @@ defmodule Tesla.Middleware.AlchemetricsTest do
         port: 80,
       }
     ])
+  end
+
+  test "report uri details including base url middleware" do
+    TeslaClientWithBaseUrl.get("/pets?specie=dog")
+    assert called Alchemetrics.report([
+      type: "external_call.response_time",
+      request_details: %{
+        service: "Support.TeslaClientWithBaseUrl",
+        method: :get,
+        protocol: "http",
+        domain: "mypets.com",
+        port: 8080,
+      }
+    ], :_)
+  end
+
+  test "alchemetrics middleware always execute before adapter" do
+    TeslaClientWithBaseUrlAfter.get("/pets?specie=dog")
+    assert called Alchemetrics.report([
+      type: "external_call.response_time",
+      request_details: %{
+        service: "Support.TeslaClientWithBaseUrlAfter",
+        method: :get,
+        protocol: "http",
+        domain: "mypets.com",
+        port: 8080,
+      }
+    ], :_)
   end
 end
