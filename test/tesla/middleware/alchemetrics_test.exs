@@ -29,7 +29,7 @@ defmodule Tesla.Middleware.AlchemetricsTest do
   end
 
   test "report response time with custom metric route name" do
-    TeslaClient.get("https://mypets.com/user/pets?specie=dog", opts: [metric_route_name: "get-dogs"])
+    TeslaClient.get("https://mypets.com/user/pets?specie=dog", opts: [alchemetrics_metadata: %{route_name: "get-dogs"}])
     assert called Alchemetrics.report([
       type: "external_call.response_time",
       request_details: %{
@@ -62,7 +62,7 @@ defmodule Tesla.Middleware.AlchemetricsTest do
   end
 
   test "report response counting with custom metric route name" do
-    TeslaClient.get("http://mypets.com/user/pets?specie=dog", opts: [metric_route_name: "get-dogs"])
+    TeslaClient.get("http://mypets.com/user/pets?specie=dog", opts: [alchemetrics_metadata: %{route_name: "get-dogs"}])
     assert called Alchemetrics.increment([
       type: "external_call.count",
       request_details: %{
@@ -98,7 +98,7 @@ defmodule Tesla.Middleware.AlchemetricsTest do
 
   test "report exception counting with custom metric route name" do
     assert_raise Tesla.Error, fn ->
-      TeslaClient.delete("http://mypets.com/user/error?specie=dog", opts: [metric_route_name: "delete-pet"])
+      TeslaClient.delete("http://mypets.com/user/error?specie=dog", opts: [alchemetrics_metadata: %{route_name: "delete-pet"}])
     end
     assert called Alchemetrics.increment([
       type: "external_call.count",
