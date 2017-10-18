@@ -104,7 +104,7 @@ This extra metadata will be added to `request_details` key:
 PetsClient.logged_user_pet(100)
 
 # Reported response time (avg, max, min, p99 and p95)
-%{
+[
   type: "external_call.response_time",
   request_details: %{
     service: "PetsClient",
@@ -114,14 +114,14 @@ PetsClient.logged_user_pet(100)
     protocol: "http",
   },
   extra: %{ route: "get.user.pets" }
-}
+]
 
 
 ## Sample call (2)
 PetsClient.dogs()
 
 # Reported response time (avg, max, min, p99 and p95)
-%{
+[
   type: "external_call.response_time",
   request_details: %{
     service: "PetsClient",
@@ -131,5 +131,5 @@ PetsClient.dogs()
     protocol: "http",
   },
   extra: %{ route: "get.dogs" }
-}
+]
 ```
