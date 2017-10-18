@@ -25,7 +25,7 @@ Alchemetrics Tesla is a very simple middleware that report metrics like `respons
 Add to your dependencies:
 ```elixir
 def deps do
-  [{:alchemetrics_tesla, "~> 0.1.0"}]
+  [{:alchemetrics_tesla, "~> 1.0"}]
 end
 ```
 
