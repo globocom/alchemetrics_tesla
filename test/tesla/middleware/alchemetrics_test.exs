@@ -92,6 +92,10 @@ defmodule Tesla.Middleware.AlchemetricsTest do
         protocol: "http",
         domain: "mypets.com",
         port: 80,
+      },
+      response_details: %{
+        status_code_group: :error,
+        status_code: :generic_error,
       }
     ])
   end
@@ -110,6 +114,10 @@ defmodule Tesla.Middleware.AlchemetricsTest do
         domain: "mypets.com",
         port: 80,
       },
+      response_details: %{
+        status_code_group: :error,
+        status_code: :generic_error,
+      }
     ])
   end
 

@@ -38,10 +38,14 @@ defmodule AlchemetricsTesla do
     |> report(func)
   end
 
-  defp count_response(%Tesla.Error{} = error, request_details, extra_metadata) do
+  defp count_response(%Tesla.Error{reason: reason} = error, request_details, extra_metadata) do
     [
       type: "#{@report_namespace}.count",
       request_details: request_details,
+      response_details: %{
+        status_code_group: :error,
+        status_code: reason,
+      }
     ]
     |> put_unless_nil(:extra, extra_metadata)
     |> Alchemetrics.increment
