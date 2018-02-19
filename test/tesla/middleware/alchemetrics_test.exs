@@ -1,7 +1,6 @@
 defmodule Tesla.Middleware.AlchemetricsTest do
   use ExUnit.Case
   import Mock
-  alias AlchemetricsTesla.ExternalServiceMeasurer
   alias Support.TeslaClient
   alias Support.TeslaClientWithBaseUrl
   alias Support.TeslaClientWithBaseUrlAfter
@@ -56,7 +55,7 @@ defmodule Tesla.Middleware.AlchemetricsTest do
       },
       response_details: %{
         status_code_group: "2xx",
-        status_code: 200,
+        status_code: "200",
       }
     ])
   end
@@ -75,7 +74,7 @@ defmodule Tesla.Middleware.AlchemetricsTest do
       },
       response_details: %{
         status_code_group: "2xx",
-        status_code: 200,
+        status_code: "200",
       },
     ])
   end
