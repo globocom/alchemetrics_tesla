@@ -5,7 +5,6 @@ defmodule AlchemetricsTesla do
 
   defmacro __using__(service_name: service_name) do
     quote do
-      import Severino.Metrics.Measurers.ExternalService
       @service_name unquote(service_name)
     end
   end
@@ -60,7 +59,7 @@ defmodule AlchemetricsTesla do
       request_details: request_details,
       response_details: %{
         status_code_group: status_code_group,
-        status_code: status_code,
+        status_code: status_code |> to_string,
       }
     ]
     |> put_unless_nil(:extra, extra_metadata)
@@ -71,7 +70,7 @@ defmodule AlchemetricsTesla do
   defp respond(%Tesla.Error{} = error), do: raise error
   defp respond(%Tesla.Env{} = response), do: response
 
-  defp put_unless_nil(keyword_list, key, nil), do: keyword_list
+  defp put_unless_nil(keyword_list, _key, nil), do: keyword_list
   defp put_unless_nil(keyword_list, key, value) do
     Keyword.put(keyword_list, key, value)
   end
