@@ -73,7 +73,7 @@ PetsClient.dogs()
     protocol: "http",
   },
   response_details: %{
-    status_code: 200,
+    status_code: "200",
     status_code_group: "2xx"
   }
 ]
