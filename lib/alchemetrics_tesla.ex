@@ -67,6 +67,34 @@ defmodule AlchemetricsTesla do
     response
   end
 
+  defp count_response({:error, reason}, request_details, extra_metadata) do
+    [
+      type: "#{@report_namespace}.count",
+      request_details: request_details,
+      response_details: %{
+        status_code_group: :error,
+        status_code: reason,
+      }
+    ]
+    |> put_unless_nil(:extra, extra_metadata)
+    |> Alchemetrics.increment
+    %Tesla.Error{reason: reason}
+  end
+
+  defp count_response(error, request_details, extra_metadata) do
+    [
+      type: "#{@report_namespace}.count",
+      request_details: request_details,
+      response_details: %{
+        status_code_group: :error,
+        status_code: "unknown error",
+      }
+    ]
+    |> put_unless_nil(:extra, extra_metadata)
+    |> Alchemetrics.increment
+    error
+  end
+
   defp respond(%Tesla.Error{} = error), do: raise error
   defp respond(%Tesla.Env{} = response), do: response
 
