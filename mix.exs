@@ -10,7 +10,7 @@ defmodule AlchemetricsTesla.Mixfile do
   def project do
     [
       app: :alchemetrics_tesla,
-      version: "1.1.3",
+      version: "1.1.4",
       elixir: "~> 1.4",
       elixirc_paths: elixirc_paths(Mix.env),
       build_embedded: Mix.env == :prod,
@@ -36,7 +36,7 @@ defmodule AlchemetricsTesla.Mixfile do
 
   defp deps do
     [
-      {:alchemetrics, "~> 0.5"},
+      {:alchemetrics, "0.5.1"},
       {:tesla, "~> 0.7"},
       {:mock, "~> 0.3.1", only: :test},
       {:excoveralls, "~> 0.7", only: :test},
