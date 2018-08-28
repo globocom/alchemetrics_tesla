@@ -20,9 +20,9 @@ defmodule Tesla.Middleware.AlchemetricsTest do
       request_details: %{
         service: "Support.TeslaClient",
         method: :get,
-        protocol: "https",
-        domain: "mypets.com",
-        port: 443,
+        protocol: :https,
+        domain: :"mypets.com",
+        port: :"443",
       }
     ], :_)
   end
@@ -35,9 +35,9 @@ defmodule Tesla.Middleware.AlchemetricsTest do
       request_details: %{
         service: "Support.TeslaClient",
         method: :get,
-        protocol: "https",
-        domain: "mypets.com",
-        port: 443,
+        protocol: :"https",
+        domain: :"mypets.com",
+        port: :"443",
       },
     ], :_)
   end
@@ -49,13 +49,13 @@ defmodule Tesla.Middleware.AlchemetricsTest do
       request_details: %{
         service: "Support.TeslaClient",
         method: :get,
-        protocol: "http",
-        domain: "mypets.com",
-        port: 80,
+        protocol: :"http",
+        domain: :"mypets.com",
+        port: :"80",
       },
       response_details: %{
-        status_code_group: "2xx",
-        status_code: "200",
+        status_code_group: :"2xx",
+        status_code: :"200",
       }
     ])
   end
@@ -68,29 +68,27 @@ defmodule Tesla.Middleware.AlchemetricsTest do
       request_details: %{
         service: "Support.TeslaClient",
         method: :get,
-        protocol: "http",
-        domain: "mypets.com",
-        port: 80,
+        protocol: :"http",
+        domain: :"mypets.com",
+        port: :"80",
       },
       response_details: %{
-        status_code_group: "2xx",
-        status_code: "200",
+        status_code_group: :"2xx",
+        status_code: :"200",
       },
     ])
   end
 
   test "report exception counting" do
-    assert_raise Tesla.Error, fn ->
-      TeslaClient.get("http://mypets.com/user/error?specie=dog")
-    end
+    {:error, %Tesla.Error{}} = TeslaClient.get("http://mypets.com/user/error?specie=dog")
     assert called Alchemetrics.increment([
       type: "external_call.count",
       request_details: %{
         service: "Support.TeslaClient",
         method: :get,
-        protocol: "http",
-        domain: "mypets.com",
-        port: 80,
+        protocol: :http,
+        domain: :"mypets.com",
+        port: :"80",
       },
       response_details: %{
         status_code_group: :error,
@@ -100,18 +98,16 @@ defmodule Tesla.Middleware.AlchemetricsTest do
   end
 
   test "report exception counting with custom metric route name" do
-    assert_raise Tesla.Error, fn ->
-      TeslaClient.delete("http://mypets.com/user/error?specie=dog", opts: [alchemetrics_metadata: %{route_name: "delete-pet"}])
-    end
+    {:error, %Tesla.Error{}} = TeslaClient.delete("http://mypets.com/user/error?specie=dog", opts: [alchemetrics_metadata: %{route_name: "delete-pet"}])
     assert called Alchemetrics.increment([
       extra: %{ route_name: "delete-pet" },
       type: "external_call.count",
       request_details: %{
         service: "Support.TeslaClient",
         method: :delete,
-        protocol: "http",
-        domain: "mypets.com",
-        port: 80,
+        protocol: :http,
+        domain: :"mypets.com",
+        port: :"80",
       },
       response_details: %{
         status_code_group: :error,
@@ -127,23 +123,23 @@ defmodule Tesla.Middleware.AlchemetricsTest do
       request_details: %{
         service: "Support.TeslaClientWithBaseUrl",
         method: :get,
-        protocol: "http",
-        domain: "mypets.com",
-        port: 8080,
+        protocol: :http,
+        domain: :"mypets.com",
+        port: :"8080",
       }
     ], :_)
   end
 
-  test "alchemetrics middleware always execute before adapter" do
+  test "alchemetrics middleware will not consider full url if it is after base url" do
     TeslaClientWithBaseUrlAfter.get("/pets?specie=dog")
     assert called Alchemetrics.report([
       type: "external_call.response_time",
       request_details: %{
         service: "Support.TeslaClientWithBaseUrlAfter",
         method: :get,
-        protocol: "http",
-        domain: "mypets.com",
-        port: 8080,
+        protocol: :unknown,
+        domain: :unknown,
+        port: :unknown,
       }
     ], :_)
   end
