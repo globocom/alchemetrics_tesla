@@ -13,19 +13,25 @@ defmodule AlchemetricsTesla do
     request_details = %{
       service: service_name,
       method: method,
-      protocol: protocol,
-      domain: domain,
-      port: port,
+      protocol: normalize_to_atom(protocol),
+      domain: normalize_to_atom(domain),
+      port: normalize_to_atom(port),
     }
     report_response_time(request_details, extra_metadata, fn ->
       try do
-        function.()
-      rescue e in Tesla.Error ->
-        e
+        case function.() do
+          {:ok, env} = response ->
+            count_response(env, request_details, extra_metadata)
+            response
+          {:error, error} = response ->
+            count_response(error, request_details, extra_metadata)
+            response
+        end
+      rescue error in Tesla.Error ->
+        count_response(error, request_details, extra_metadata)
+        reraise error, System.stacktrace()
       end
     end)
-    |> count_response(request_details, extra_metadata)
-    |> respond
   end
 
   defp report_response_time(request_details, extra_metadata, func) do
@@ -53,13 +59,13 @@ defmodule AlchemetricsTesla do
 
   defp count_response(%Tesla.Env{status: status_code} = response, request_details, extra_metadata) do
     first_digit = div(status_code, 100)
-    status_code_group = "#{first_digit}xx"
+    status_code_group = :"#{first_digit}xx"
     [
       type: "#{@report_namespace}.count",
       request_details: request_details,
       response_details: %{
         status_code_group: status_code_group,
-        status_code: status_code |> to_string,
+        status_code: normalize_to_atom(status_code),
       }
     ]
     |> put_unless_nil(:extra, extra_metadata)
@@ -95,8 +101,14 @@ defmodule AlchemetricsTesla do
     error
   end
 
-  defp respond(%Tesla.Error{} = error), do: raise error
-  defp respond(%Tesla.Env{} = response), do: response
+  defp normalize_to_atom(nil), do: :unknown
+  defp normalize_to_atom(value) when is_atom(value), do: value
+  defp normalize_to_atom(value) when is_binary(value), do: String.to_atom(value)
+  defp normalize_to_atom(value) do
+    value
+    |> to_string
+    |> String.to_atom()
+  end
 
   defp put_unless_nil(keyword_list, _key, nil), do: keyword_list
   defp put_unless_nil(keyword_list, key, value) do

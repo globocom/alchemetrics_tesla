@@ -4,8 +4,8 @@ defmodule Support.TeslaClient do
 
   adapter(fn env ->
     cond do
-      String.match?(env.url, ~r{user/pets}) -> %{env | status: 200, body: "pets"}
-      String.match?(env.url, ~r{user/error}) -> raise %Tesla.Error{reason: :generic_error}
+      String.match?(env.url, ~r{user/pets}) -> {:ok, %{env | status: 200, body: "pets"}}
+      String.match?(env.url, ~r{user/error}) -> {:error, %Tesla.Error{reason: :generic_error}}
     end
   end)
 end
@@ -17,7 +17,7 @@ defmodule Support.TeslaClientWithBaseUrl do
 
   adapter(fn env ->
     cond do
-      String.match?(env.url, ~r{pets}) -> %{env | status: 200, body: "pets"}
+      String.match?(env.url, ~r{pets}) -> {:ok, %{env | status: 200, body: "pets"}}
     end
   end)
 end
@@ -29,7 +29,7 @@ defmodule Support.TeslaClientWithBaseUrlAfter do
 
   adapter(fn env ->
     cond do
-      String.match?(env.url, ~r{pets}) -> %{env | status: 200, body: "pets"}
+      String.match?(env.url, ~r{pets}) -> {:ok, %{env | status: 200, body: "pets"}}
     end
   end)
 end
