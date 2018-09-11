@@ -18,19 +18,8 @@ defmodule AlchemetricsTesla do
       port: normalize_to_atom(port),
     }
     report_response_time(request_details, extra_metadata, fn ->
-      try do
-        case function.() do
-          {:ok, env} = response ->
-            count_response(env, request_details, extra_metadata)
-            response
-          {:error, error} = response ->
-            count_response(error, request_details, extra_metadata)
-            response
-        end
-      rescue error in Tesla.Error ->
-        count_response(error, request_details, extra_metadata)
-        reraise error, System.stacktrace()
-      end
+      function.()
+      |> count_response(request_details, extra_metadata)
     end)
   end
 
@@ -43,21 +32,7 @@ defmodule AlchemetricsTesla do
     |> report(func)
   end
 
-  defp count_response(%Tesla.Error{reason: reason} = error, request_details, extra_metadata) do
-    [
-      type: "#{@report_namespace}.count",
-      request_details: request_details,
-      response_details: %{
-        status_code_group: :error,
-        status_code: reason,
-      }
-    ]
-    |> put_unless_nil(:extra, extra_metadata)
-    |> Alchemetrics.increment
-    error
-  end
-
-  defp count_response(%Tesla.Env{status: status_code} = response, request_details, extra_metadata) do
+  defp count_response({:ok, %Tesla.Env{status: status_code} = env}, request_details, extra_metadata) do
     first_digit = div(status_code, 100)
     status_code_group = :"#{first_digit}xx"
     [
@@ -70,7 +45,7 @@ defmodule AlchemetricsTesla do
     ]
     |> put_unless_nil(:extra, extra_metadata)
     |> Alchemetrics.increment
-    response
+    {:ok, env}
   end
 
   defp count_response({:error, reason}, request_details, extra_metadata) do
@@ -79,26 +54,12 @@ defmodule AlchemetricsTesla do
       request_details: request_details,
       response_details: %{
         status_code_group: :error,
-        status_code: reason,
+        status_code: normalize_to_atom(reason),
       }
     ]
     |> put_unless_nil(:extra, extra_metadata)
     |> Alchemetrics.increment
-    %Tesla.Error{reason: reason}
-  end
-
-  defp count_response(error, request_details, extra_metadata) do
-    [
-      type: "#{@report_namespace}.count",
-      request_details: request_details,
-      response_details: %{
-        status_code_group: :error,
-        status_code: "unknown error",
-      }
-    ]
-    |> put_unless_nil(:extra, extra_metadata)
-    |> Alchemetrics.increment
-    error
+    {:error, reason}
   end
 
   defp normalize_to_atom(nil), do: :unknown

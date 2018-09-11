@@ -35,11 +35,26 @@ defmodule Tesla.Middleware.AlchemetricsTest do
       request_details: %{
         service: "Support.TeslaClient",
         method: :get,
-        protocol: :"https",
+        protocol: :https,
         domain: :"mypets.com",
         port: :"443",
       },
     ], :_)
+  end
+
+  test "report response in error" do
+    TeslaClient.get("https://mypets.com/user/error")
+    assert called Alchemetrics.increment([
+      type: "external_call.count",
+      request_details: %{
+        domain: :"mypets.com",
+        method: :get,
+        port: :"443",
+        protocol: :https,
+        service: "Support.TeslaClient"
+      },
+      response_details: %{status_code: :generic_error, status_code_group: :error}
+    ])
   end
 
   test "report response counting" do
@@ -49,7 +64,7 @@ defmodule Tesla.Middleware.AlchemetricsTest do
       request_details: %{
         service: "Support.TeslaClient",
         method: :get,
-        protocol: :"http",
+        protocol: :http,
         domain: :"mypets.com",
         port: :"80",
       },
@@ -68,7 +83,7 @@ defmodule Tesla.Middleware.AlchemetricsTest do
       request_details: %{
         service: "Support.TeslaClient",
         method: :get,
-        protocol: :"http",
+        protocol: :http,
         domain: :"mypets.com",
         port: :"80",
       },
@@ -76,43 +91,6 @@ defmodule Tesla.Middleware.AlchemetricsTest do
         status_code_group: :"2xx",
         status_code: :"200",
       },
-    ])
-  end
-
-  test "report exception counting" do
-    {:error, %Tesla.Error{}} = TeslaClient.get("http://mypets.com/user/error?specie=dog")
-    assert called Alchemetrics.increment([
-      type: "external_call.count",
-      request_details: %{
-        service: "Support.TeslaClient",
-        method: :get,
-        protocol: :http,
-        domain: :"mypets.com",
-        port: :"80",
-      },
-      response_details: %{
-        status_code_group: :error,
-        status_code: :generic_error,
-      }
-    ])
-  end
-
-  test "report exception counting with custom metric route name" do
-    {:error, %Tesla.Error{}} = TeslaClient.delete("http://mypets.com/user/error?specie=dog", opts: [alchemetrics_metadata: %{route_name: "delete-pet"}])
-    assert called Alchemetrics.increment([
-      extra: %{ route_name: "delete-pet" },
-      type: "external_call.count",
-      request_details: %{
-        service: "Support.TeslaClient",
-        method: :delete,
-        protocol: :http,
-        domain: :"mypets.com",
-        port: :"80",
-      },
-      response_details: %{
-        status_code_group: :error,
-        status_code: :generic_error,
-      }
     ])
   end
 
