@@ -40,7 +40,7 @@ defmodule AlchemetricsTesla.Mixfile do
       {:tesla, "~> 1.0.0"},
       {:mock, "~> 0.3.1", only: :test},
       {:excoveralls, "~> 0.7", only: :test},
-      {:ex_doc, ">= 0.0.0", only: :dev},
+      {:ex_doc, "~> 0.19", only: :dev},
     ]
   end
 
